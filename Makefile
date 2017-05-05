@@ -12,7 +12,6 @@ release:
 
 setup:
 	go get github.com/dimfeld/httptreemux
-	go get github.com/go-zoo/bone
 	go get github.com/golang/glog
 	go get gopkg.in/cas.v1
 	go get -u github.com/jteeuwen/go-bindata/...
