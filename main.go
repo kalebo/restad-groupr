@@ -10,15 +10,9 @@ import (
 	"net/url"
 )
 
-// Globals
-
-type ApiHandler struct{}
-type FrontEndHandler struct{}
-
 var (
-	casURLstr string = "https://cas.byu.edu/cas/"
-	apiURLstr string = "http://avari:1234"
-	//apiURLstr string = "http://localhost:1111"
+	casUrl *url.URL = &url.URL{Scheme: "https", Host: "cas.byu.edu", Path: "/cas/"}
+	apiUrl *url.URL = &url.URL{Scheme: "http", Host: "avari:1234"}
 )
 
 func init() {
@@ -30,15 +24,12 @@ func main() {
 
 	r := mux.NewRouter()
 
-	casUrl, _ := url.Parse(casURLstr)
-	apiUrl, _ := url.Parse(apiURLstr)
-
 	client := cas.NewClient(&cas.Options{
 		URL: casUrl,
 	})
 
 	// Backend API Routes
-	r.Handle("/api/{path:.*}", httputil.NewSingleHostReverseProxy(apiUrl))
+	r.HandleFunc("/api/{path:.*}", ApiEndpoints)
 
 	// Main App Routes
 	r.HandleFunc("/app", MainApp)
@@ -58,24 +49,18 @@ func main() {
 
 func ApiEndpoints(w http.ResponseWriter, r *http.Request) {
 	// Passes incoming requests to RESTAD
-	//if !cas.IsAuthenticated(r) {
-	//       return
-	//}
+	if !cas.IsAuthenticated(r) {
+		return
+	}
 
-	vars := mux.Vars(r)
-	apiURLstr := vars["path"]
-
-	fmt.Println(apiURLstr + r.URL.Path)
-	// apiEndpoint, _ := url.Parse(apiURLstr + r.URL.Path)
-	// proxy := httputil.NewSingleHostReverseProxy(apiEndpoint)
+	proxy := httputil.NewSingleHostReverseProxy(apiUrl)
+	proxy.ServeHTTP(w, r)
 
 }
 
 func MainApp(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Is hit")
 	if !cas.IsAuthenticated(r) {
 		cas.RedirectToLogin(w, r)
 		return
 	}
-	fmt.Println("Is authd")
 }
