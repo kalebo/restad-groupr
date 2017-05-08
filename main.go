@@ -1,20 +1,25 @@
 package main
 
 import (
-	"github.com/dimfeld/httptreemux"
+	"fmt"
 	"github.com/golang/glog"
+	"github.com/gorilla/mux"
 	"gopkg.in/cas.v1"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 )
 
 // Globals
 
-var casURLstr string = "https://cas.byu.edu/cas/"
-var apiURLstr string = "http://avari:1234/api/"
+type ApiHandler struct{}
+type FrontEndHandler struct{}
 
-type apiHandler struct{}
-type frontEndHandler struct{}
+var (
+	casURLstr string = "https://cas.byu.edu/cas/"
+	apiURLstr string = "http://avari:1234"
+	//apiURLstr string = "http://localhost:1111"
+)
 
 func init() {
 
@@ -23,39 +28,54 @@ func init() {
 func main() {
 	glog.Info("starting..")
 
-	router := httptreemux.New()
-	api := router.NewGroup("/api")
-	app := router.NewGroup("/app")
+	r := mux.NewRouter()
 
 	casUrl, _ := url.Parse(casURLstr)
-	casClient := cas.NewClient(&cas.Options{
+	apiUrl, _ := url.Parse(apiURLstr)
+
+	client := cas.NewClient(&cas.Options{
 		URL: casUrl,
 	})
 
-	api.GET("/*", ProxyAPI)
+	// Backend API Routes
+	r.Handle("/api/{path:.*}", httputil.NewSingleHostReverseProxy(apiUrl))
 
-	http.ListenAndServe(":8080", router)
+	// Main App Routes
+	r.HandleFunc("/app", MainApp)
 
-}
+	// CAS Authentication Routes
+	r.HandleFunc("/cas/login", cas.RedirectToLogin)
+	r.HandleFunc("/cas/logout", cas.RedirectToLogout)
 
-func (h *apiHandler) ProxyAPI(w http.ResponseWriter, r *http.Request, params map[string]string) {
-	// Passes incoming requests to RESTAD
-	if !cas.IsAuthenticated(r) {
-		//cas.RedirectToLogin(w, r)
-		return
+	server := &http.Server{
+		Addr:    ":8080",
+		Handler: client.Handle(r),
 	}
 
+	server.ListenAndServe()
+
 }
 
-func (h *frontEndHandler) MainApp(w http.ResponseWriter, r *http.Request, params map[string]string) {
+func ApiEndpoints(w http.ResponseWriter, r *http.Request) {
+	// Passes incoming requests to RESTAD
+	//if !cas.IsAuthenticated(r) {
+	//       return
+	//}
+
+	vars := mux.Vars(r)
+	apiURLstr := vars["path"]
+
+	fmt.Println(apiURLstr + r.URL.Path)
+	// apiEndpoint, _ := url.Parse(apiURLstr + r.URL.Path)
+	// proxy := httputil.NewSingleHostReverseProxy(apiEndpoint)
+
+}
+
+func MainApp(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Is hit")
 	if !cas.IsAuthenticated(r) {
 		cas.RedirectToLogin(w, r)
 		return
 	}
-
-}
-
-func (h *frontEndHandler) CasLogout(w http.ResponseWriter, r *http.Request, params map[string]string)  {
-	cas.RedirectToLogout(w, r)
-	return
+	fmt.Println("Is authd")
 }
