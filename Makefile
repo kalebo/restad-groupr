@@ -11,7 +11,7 @@ release:
 	go build
 
 setup:
-	go get github.com/dimfeld/httptreemux
+	go get github.com/gorilla/mux
 	go get github.com/golang/glog
 	go get gopkg.in/cas.v1
 	go get -u github.com/jteeuwen/go-bindata/...
