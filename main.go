@@ -20,7 +20,9 @@ func init() {
 }
 
 func main() {
-	glog.Info("starting..")
+	fmt.Println("Starting...")
+
+	glog.Info("Logging started!")
 
 	r := mux.NewRouter()
 
