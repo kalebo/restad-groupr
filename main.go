@@ -5,18 +5,37 @@ import (
 	"github.com/golang/glog"
 	"github.com/gorilla/mux"
 	"gopkg.in/cas.v1"
+	"html/template"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"strings"
 )
+
+type Empty struct{}
 
 var (
 	casUrl *url.URL = &url.URL{Scheme: "https", Host: "cas.byu.edu", Path: "/cas/"}
 	apiUrl *url.URL = &url.URL{Scheme: "http", Host: "avari:1234"}
+
+	templateMap = template.FuncMap{
+		"Upper": func(s string) string {
+			return strings.ToUpper(s)
+		},
+	}
+
+	templates = template.New("").Funcs(templateMap)
 )
 
 func init() {
+	for _, path := range AssetNames() {
+		bytes, err := Asset(path)
+		if err != nil {
+			glog.Warningf("Unable to parse: path=%s, err=%s", path, err)
 
+		}
+		templates.New(path).Parse(string(bytes))
+	}
 }
 
 func main() {
@@ -46,7 +65,14 @@ func main() {
 	}
 
 	server.ListenAndServe()
+}
 
+func RenderTemplate(w http.ResponseWriter, tmpl string, p interface{}) {
+	err := templates.ExecuteTemplate(w, tmpl, p)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+
+	}
 }
 
 func ApiEndpoints(w http.ResponseWriter, r *http.Request) {
@@ -57,7 +83,6 @@ func ApiEndpoints(w http.ResponseWriter, r *http.Request) {
 
 	proxy := httputil.NewSingleHostReverseProxy(apiUrl)
 	proxy.ServeHTTP(w, r)
-
 }
 
 func MainApp(w http.ResponseWriter, r *http.Request) {
@@ -65,4 +90,6 @@ func MainApp(w http.ResponseWriter, r *http.Request) {
 		cas.RedirectToLogin(w, r)
 		return
 	}
+
+	RenderTemplate(w, "data/test.html", &Empty{})
 }
