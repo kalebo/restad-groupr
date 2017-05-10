@@ -23,6 +23,46 @@
         max-width: 1200px;
         width: 100%;
     }
+
+ .member-name {
+        font-family: Gotham A,Gotham B,Helvetica,sans-serif !important;
+        font-weight: bold;
+        color: #061429;
+     }
+ .member-netid {
+        font-family: Gotham A,Gotham B,Helvetica,sans-serif !important;
+        color: #888;
+     }
+
+ .add-member-form {
+     padding: 2em;
+     }
+
+ .add-member-form > * {
+        font-family: Gotham A,Gotham B,Helvetica,sans-serif !important;
+        display: inline-block;
+        font-size: 1rem;
+     }
+
+ .add-member-form > input {
+        border: 1px solid #888;
+        border-radius: 3px 0px 0px 3px;
+}
+
+ .add-member-form > button {
+        font-weight: bold;
+        border: 1px solid #4CAF50;
+        border-radius: 0px 3px 3px 0px;
+        background-color: white;
+        color: black;
+        transition-duration: 0.4s;
+
+     }
+ .add-member-form > button:hover {
+      background-color: #4CAF50;
+      color: white;
+     }
+
 </style>
 <html>
   <head>
@@ -45,8 +85,6 @@
         </byu-header>
 
     <div class="page-content">
-        <h1>Welcome to Zombocom!</h1>
-            <!-- Put your site content here -->
         <div id="react-app"></div>
     </div>
 
@@ -65,13 +103,34 @@
              },
          render: function() {
              return (
-                 h('li', {ClassName: 'member'},
-                   h('h2' , {ClassName: 'member-name'}, this.props.Name),
-                   h('h3', {ClassName: 'member-netid'}, this.props.NetId)
+                 h('li', {className: 'member'},
+                   h('span' , {className: 'member-name'}, this.props.Name),
+                   h('span', {className: 'member-netid'}, '  (' + this.props.NetId + ')')
                  )
                )
             },
          })
+     var newMember = {NetId: ""}
+
+     var AddMemberElement = React.createClass({
+         render : function() {
+             return (
+                 h('form', {
+                     className: 'add-member-form',
+                     onChange: function(syntheticEvent) {
+                         console.log(syntheticEvent.target.value);
+                     },
+                  },
+                   h('input', {
+                       type: 'text',
+                       placeholder: 'NetId (required)',
+                       value: this.props.NetId,
+                   }),
+                   h('button', {type: 'submit'}, 'Add')
+                 )
+             )
+         },
+     })
 
      var groupData = {};
 
@@ -90,7 +149,8 @@
 
      var rootElement = h('div', null,
                          h('h1', null, groupData.Name),
-                         h('ul', null, MemberItemElements)
+                         h('ul', null, MemberItemElements),
+                         h(AddMemberElement, newMember)
      );
 
      ReactDOM.render(rootElement, document.getElementById("react-app"));
