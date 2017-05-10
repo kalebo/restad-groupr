@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/golang/glog"
 	"github.com/gorilla/mux"
 	"gopkg.in/cas.v1"
@@ -9,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"flag"
 	"strings"
 )
 
@@ -39,9 +39,8 @@ func init() {
 }
 
 func main() {
-	fmt.Println("Starting...")
-
-	glog.Info("Logging started!")
+	flag.Parse()
+	glog.Info("Starting...")
 
 	r := mux.NewRouter()
 
