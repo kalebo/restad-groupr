@@ -1,19 +1,56 @@
 <!DOCTYPE html>
+<style>
+    html, body {
+            width: 100vw;
+            min-width: 100vw;
+            max-width: 100vw;
+    }
+
+    html {
+            height: 100%;
+    }
+
+
+    body {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .page-content {
+        flex: 1;
+        margin: 0 auto;
+        max-width: 1200px;
+        width: 100%;
+    }
+</style>
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>AD Group Manager</title>
+    <title>Physics/Astronomy Group Manager</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+    <link type="text/css" rel="stylesheet" href="//cloud.typography.com/75214/6517752/css/fonts.css" media="all" />
+<link rel="stylesheet" href="https://cdn.byu.edu/byu-theme-components/latest/byu-theme-components.min.css" />
+<script async src="https://cdn.byu.edu/byu-theme-components/latest/byu-theme-components.min.js"></script>
   </head>
   <body>
-    <h1>Welcome to Zombocom!</h1>
+        <byu-header>
+            <p slot="site-title">Physics/Astronomy Group Manager</p>
+            <byu-user-info login-url="#login" slot="user">
+                <a href="/cas/login" slot="login">Sign In</a>
+                <a href="/cas/logout" slot="logout">Sign Out</a>
+                <span slot="user-name">{{.Username}}</span>
+            </byu-user-info>
+        </byu-header>
 
-    <div id="react-app"></div>
-
-    <div>
-        <div id="group-name"></div>
-        <div id="user-list"></div>
+    <div class="page-content">
+        <h1>Welcome to Zombocom!</h1>
+            <!-- Put your site content here -->
+        <div id="react-app"></div>
     </div>
+
+     <byu-footer></byu-footer>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.5.4/react.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.5.4/react-dom.js"></script>
