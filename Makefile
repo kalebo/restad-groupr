@@ -1,13 +1,11 @@
-DATAPATH=data/...
-GOBINDATA=~/gocode/bin/go-bindata
-GOBINDATA_FLAGS= -o assets.go 
+DATAPATH=react-example/... 
 
 debug:
-	$(GOBINDATA) -debug $(GOBINDATA_FLAGS) $(DATAPATH)
+	go-bindata-assetfs -debug $(DATAPATH)
 	go build
 
 release:
-	$(GOBINDATA) -nomemcopy $(GOBINDATA_FLAGS) $(DATAPATH)
+	go-bindata-assetfs -nomemcopy $(DATAPATH)
 	go build
 
 setup:
@@ -15,3 +13,4 @@ setup:
 	go get github.com/golang/glog
 	go get gopkg.in/cas.v1
 	go get -u github.com/jteeuwen/go-bindata/...
+	go get -u github.com/elazarl/go-bindata-assetfs/...

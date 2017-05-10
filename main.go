@@ -33,14 +33,6 @@ var (
 )
 
 func init() {
-	for _, path := range AssetNames() {
-		bytes, err := Asset(path)
-		if err != nil {
-			glog.Warningf("Unable to parse: path=%s, err=%s", path, err)
-
-		}
-		templates.New(path).Parse(string(bytes))
-	}
 }
 
 func main() {
@@ -55,7 +47,7 @@ func main() {
 	})
 
 	// Backend API Routes
-	r.HandleFunc("/api/", ApiEndpoints)
+	r.HandleFunc("/api/", APIEndpoints)
 	//r.HandleFunc("/api/{path:.*}", ApiEndpoints) // requires gorilla mux
 
 	// Main App Routes
@@ -64,6 +56,9 @@ func main() {
 	// CAS Authentication Routes
 	r.HandleFunc("/cas/login", cas.RedirectToLogin)
 	r.HandleFunc("/cas/logout", cas.RedirectToLogout)
+
+	fs := http.FileServer(assetFS())
+	r.Handle("/", fs)
 
 	server := &http.Server{
 		Addr:    ":8080",
@@ -90,8 +85,8 @@ func RenderTemplate(w http.ResponseWriter, tmpl string, p interface{}) {
 	}
 }
 
-// ApiEndpoints acts as a reverse proxy to the RESTAD API backend
-func ApiEndpoints(w http.ResponseWriter, r *http.Request) {
+// APIEndpoints acts as a reverse proxy to the RESTAD API backend
+func APIEndpoints(w http.ResponseWriter, r *http.Request) {
 	if !cas.IsAuthenticated(r) {
 		return
 	}
@@ -100,6 +95,7 @@ func ApiEndpoints(w http.ResponseWriter, r *http.Request) {
 	proxy.ServeHTTP(w, r)
 }
 
+// App renders and serves the front end index.html
 func App(w http.ResponseWriter, r *http.Request) {
 	if !cas.IsAuthenticated(r) {
 		cas.RedirectToLogin(w, r)
@@ -110,5 +106,5 @@ func App(w http.ResponseWriter, r *http.Request) {
 		Username: cas.Username(r),
 	}
 
-	RenderTemplate(w, "data/test.html", binding)
+	RenderTemplate(w, "react-example/index.html", binding)
 }

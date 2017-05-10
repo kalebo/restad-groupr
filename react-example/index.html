@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<style>
+</style>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Physics/Astronomy Group Manager</title>
+    <link rel="shortcut icon" href="favicon.ico">
+
+    <link type="text/css" rel="stylesheet" href="style.css" media="all" />
+    <link type="text/css" rel="stylesheet" href="//cloud.typography.com/75214/6517752/css/fonts.css" media="all" />
+    <link rel="stylesheet" href="https://cdn.byu.edu/byu-theme-components/latest/byu-theme-components.min.css" />
+    <script async src="https://cdn.byu.edu/byu-theme-components/latest/byu-theme-components.min.js"></script>
+
+  </head>
+  <body>
+        <byu-header>
+            <p slot="site-title">Physics/Astronomy Group Manager</p>
+            <byu-user-info login-url="#login" slot="user">
+                <a href="/cas/login" slot="login">Sign In</a>
+                <a href="/cas/logout" slot="logout">Sign Out</a>
+                <span slot="user-name">{{.Username}}</span>
+            </byu-user-info>
+        </byu-header>
+
+    <div class="page-content">
+        <div id="react-app"></div>
+    </div>
+
+     <byu-footer></byu-footer>
+
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.5.4/react.js"></script>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.5.4/react-dom.js"></script>
+     <script src="app.js"></script>
+
+  </body>
+</html>
