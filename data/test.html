@@ -1,1 +1,62 @@
-<h1>Welcome to Zombocom!</h1>
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>AD Group Manager</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  </head>
+  <body>
+    <h1>Welcome to Zombocom!</h1>
+
+    <div id="react-app"></div>
+
+    <div>
+        <div id="group-name"></div>
+        <div id="user-list"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.5.4/react.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.5.4/react-dom.js"></script>
+
+    <script type="text/javascript">
+     var h = React.createElement;
+
+     var MemberElement = React.createClass({
+         propTypes: {
+             name: React.PropTypes.string.isRequired,
+             netid: React.PropTypes.string.isRequired,
+             },
+         render: function() {
+             return (
+                 h('li', {ClassName: 'member'},
+                   h('h2' , {ClassName: 'member-name'}, this.props.Name),
+                   h('h3', {ClassName: 'member-netid'}, this.props.NetId)
+                 )
+               )
+            },
+         })
+
+     var groupData = {};
+
+    $.ajax({
+         async:false,
+         url: '/api/group/physics-grp-test/members',
+         success: function(data) {
+             groupData = data;
+             }
+    })
+
+     var MemberItemElements = groupData.Users
+     .map(function(member) {return h(MemberElement, member)});
+
+
+
+     var rootElement = h('div', null,
+                         h('h1', null, groupData.Name),
+                         h('ul', null, MemberItemElements)
+     );
+
+     ReactDOM.render(rootElement, document.getElementById("react-app"));
+    </script>
+  </body>
+</html>

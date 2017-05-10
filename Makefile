@@ -1,13 +1,13 @@
 DATAPATH=data/...
 GOBINDATA=~/gocode/bin/go-bindata
-GOBINDATA_FLAGS= -o assets.go -nomemcopy
+GOBINDATA_FLAGS= -o assets.go 
 
 debug:
 	$(GOBINDATA) -debug $(GOBINDATA_FLAGS) $(DATAPATH)
 	go build
 
 release:
-	$(GOBINDATA) $(GOBINDATA_FLAGS) $(DATAPATH)
+	$(GOBINDATA) -nomemcopy $(GOBINDATA_FLAGS) $(DATAPATH)
 	go build
 
 setup:

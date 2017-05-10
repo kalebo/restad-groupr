@@ -68,7 +68,14 @@ func main() {
 }
 
 func RenderTemplate(w http.ResponseWriter, tmpl string, p interface{}) {
-	err := templates.ExecuteTemplate(w, tmpl, p)
+	//err := templates.ExecuteTemplate(w, tmpl, p)
+
+	// development debug
+	asset, err := Asset(tmpl)
+	t, err := template.New("main").Parse(string(asset))
+	t.Execute(w, p)
+	// end
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 
