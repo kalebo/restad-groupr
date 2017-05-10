@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/golang/glog"
-	"github.com/gorilla/mux"
+	//"github.com/gorilla/mux"
 	"gopkg.in/cas.v1"
 	"html/template"
 	"net/http"
@@ -12,7 +12,10 @@ import (
 	"strings"
 )
 
-type Empty struct{}
+type TemplateBinding struct {
+        Username   string
+}
+
 
 var (
 	casUrl *url.URL = &url.URL{Scheme: "https", Host: "cas.byu.edu", Path: "/cas/"}
@@ -42,14 +45,17 @@ func main() {
 	flag.Parse()
 	glog.Info("Starting...")
 
-	r := mux.NewRouter()
+	r := http.NewServeMux()
+	//r := mux.NewRouter() // gorilla mux isn't playing well with cas on go1.7
 
 	client := cas.NewClient(&cas.Options{
 		URL: casUrl,
 	})
 
 	// Backend API Routes
-	r.HandleFunc("/api/{path:.*}", ApiEndpoints)
+	r.HandleFunc("/api/", ApiEndpoints)
+	//r.HandleFunc("/api/{path:.*}", ApiEndpoints) // requires gorilla mux
+
 
 	// Main App Routes
 	r.HandleFunc("/app", MainApp)
@@ -97,5 +103,9 @@ func MainApp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	RenderTemplate(w, "data/test.html", &Empty{})
+	binding := &TemplateBinding{
+		Username: cas.Username(r),
+	}
+
+	RenderTemplate(w, "data/test.html", binding)
 }
