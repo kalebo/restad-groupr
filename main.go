@@ -1,25 +1,27 @@
 package main
 
+// import "github.com/gorilla/mux"
 import (
-	"github.com/golang/glog"
-	//"github.com/gorilla/mux"
-	"gopkg.in/cas.v1"
+	"flag"
 	"html/template"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"flag"
 	"strings"
+
+	"github.com/golang/glog"
+
+	"gopkg.in/cas.v1"
 )
 
+// TemplateBinding specifies the NetId username that the templates should be rendered with
 type TemplateBinding struct {
-        Username   string
+	Username string
 }
 
-
 var (
-	casUrl *url.URL = &url.URL{Scheme: "https", Host: "cas.byu.edu", Path: "/cas/"}
-	apiUrl *url.URL = &url.URL{Scheme: "http", Host: "avari:1234"}
+	casURL = &url.URL{Scheme: "https", Host: "cas.byu.edu", Path: "/cas/"}
+	apiURL = &url.URL{Scheme: "http", Host: "avari:1234"}
 
 	templateMap = template.FuncMap{
 		"Upper": func(s string) string {
@@ -49,16 +51,15 @@ func main() {
 	//r := mux.NewRouter() // gorilla mux isn't playing well with cas on go1.7
 
 	client := cas.NewClient(&cas.Options{
-		URL: casUrl,
+		URL: casURL,
 	})
 
 	// Backend API Routes
 	r.HandleFunc("/api/", ApiEndpoints)
 	//r.HandleFunc("/api/{path:.*}", ApiEndpoints) // requires gorilla mux
 
-
 	// Main App Routes
-	r.HandleFunc("/app", MainApp)
+	r.HandleFunc("/app", App)
 
 	// CAS Authentication Routes
 	r.HandleFunc("/cas/login", cas.RedirectToLogin)
@@ -72,6 +73,8 @@ func main() {
 	server.ListenAndServe()
 }
 
+// RenderTemplate loads an asset by the path passed in by `tmpl` and executes
+// it with the values in `p`.
 func RenderTemplate(w http.ResponseWriter, tmpl string, p interface{}) {
 	//err := templates.ExecuteTemplate(w, tmpl, p)
 
@@ -87,17 +90,17 @@ func RenderTemplate(w http.ResponseWriter, tmpl string, p interface{}) {
 	}
 }
 
+// ApiEndpoints acts as a reverse proxy to the RESTAD API backend
 func ApiEndpoints(w http.ResponseWriter, r *http.Request) {
-	// Passes incoming requests to RESTAD
 	if !cas.IsAuthenticated(r) {
 		return
 	}
 
-	proxy := httputil.NewSingleHostReverseProxy(apiUrl)
+	proxy := httputil.NewSingleHostReverseProxy(apiURL)
 	proxy.ServeHTTP(w, r)
 }
 
-func MainApp(w http.ResponseWriter, r *http.Request) {
+func App(w http.ResponseWriter, r *http.Request) {
 	if !cas.IsAuthenticated(r) {
 		cas.RedirectToLogin(w, r)
 		return
