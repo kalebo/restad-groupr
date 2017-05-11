@@ -23,7 +23,7 @@
   },
   "scripts": {
     "start": "webpack-dev-server",
-    "build": "babel-node  index.js",
+    "build": "babel-node  client/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
