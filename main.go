@@ -21,7 +21,7 @@ type TemplateBinding struct {
 
 var (
 	casURL = &url.URL{Scheme: "https", Host: "cas.byu.edu", Path: "/cas/"}
-	apiURL = &url.URL{Scheme: "http", Host: "avari:1234"}
+	apiURL = &url.URL{Scheme: "http", Host: "10.25.82.180:1234"}
 
 	templateMap = template.FuncMap{
 		"Upper": func(s string) string {
@@ -106,5 +106,5 @@ func App(w http.ResponseWriter, r *http.Request) {
 		Username: cas.Username(r),
 	}
 
-	RenderTemplate(w, "react-example/index.html", binding)
+	RenderTemplate(w, "dist/index.html", binding)
 }
