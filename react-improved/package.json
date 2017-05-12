@@ -23,6 +23,7 @@
   },
   "scripts": {
     "start": "webpack-dev-server",
+    "webpack": "webpack",
     "build": "babel-node  client/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
