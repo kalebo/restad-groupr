@@ -77,13 +77,8 @@ export default class App extends React.Component {
     fetch('/api/group/physics-grp-test/members', {credentials: 'same-origin'})
       .then(r => r.json())
       .then(data => {
-        this.setState({groupname: data.Name})
-        this.setState({members: data.Users})
+        this.setState({groupname: data.Name, members: data.Users}, () => this.render())
       })
-  }
-
-  refresh () {
-    this.fetchState()
   }
 
   componentDidMount () {
@@ -94,8 +89,8 @@ export default class App extends React.Component {
     return (
       h('div', null,
         h('h1', null, this.state.groupname),
-        h('ul', null, this.state.members.map(member => h(MemberElement, member))),
-        h(AddMemberElement, {onGroupModified: () => this.refresh()}))
+        h('ul', {className: "member-list"}, this.state.members.map(member => h(MemberElement, member))),
+        h(AddMemberElement, {onGroupModified: () => this.fetchState()}))
     )
   }
 }
