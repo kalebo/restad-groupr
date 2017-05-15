@@ -20,7 +20,7 @@ class MemberElement extends React.Component {
       h('a', {
         className: 'member-rm-btn',
         onClick: e => this.removeMember(e)
-      }, ' × '),
+      }, '  ✕  '),
       h('span', {className: 'member-name'}, this.props.Name),
       h('span', {className: 'member-netid'}, '  (' + this.props.NetId + ')')
       )
@@ -77,7 +77,7 @@ export default class App extends React.Component {
     fetch('/api/group/physics-grp-test/members', {credentials: 'same-origin'})
       .then(r => r.json())
       .then(data => {
-        this.setState({groupname: data.Name, members: data.Users}, () => this.render())
+        this.setState({groupname: data.Name, members: data.Users})
       })
   }
 
@@ -90,7 +90,7 @@ export default class App extends React.Component {
       h('div', null,
         h('h1', null, this.state.groupname),
         h('ul', {className: "member-list"}, this.state.members.map(member => h(MemberElement, member))),
-        h(AddMemberElement, {onGroupModified: () => this.fetchState()}))
+        h(AddMemberElement, {onGroupModified: this.fetchState.bind(this)}))
     )
   }
 }

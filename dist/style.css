@@ -30,6 +30,7 @@ body {
     color: red;
     font-weight: bold;
     transition-duration: 0.4s;
+    cursor: pointer;
 }
 
 .member-rm-btn:hover {

@@ -1,6 +1,9 @@
 package main
 
-// import "github.com/gorilla/mux"
+//"github.com/gorilla/mux"
+//"github.com/go-zoo/bone"
+//"github.com/dimfeld/httptreemux"
+
 import (
 	"flag"
 	"html/template"
@@ -8,6 +11,12 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"strings"
+	"time"
+
+	// finally settling on this muxer because:
+	// it plays nice with the global map in cas
+	// and it correctly serves static assets
+	"github.com/szxp/mux"
 
 	"github.com/golang/glog"
 
@@ -36,11 +45,18 @@ func init() {
 }
 
 func main() {
+	var port string
+
+	flag.StringVar(&port, "port", "8080", "the `port` to listen on.")
 	flag.Parse()
+
 	glog.Info("Starting...")
 
-	r := http.NewServeMux()
+	//r := http.NewServeMux()
 	//r := mux.NewRouter() // gorilla mux isn't playing well with cas on go1.7
+	//r := bone.New()
+	//r := httptreemux.NewContextMux()
+	r := mux.NewMuxer()
 
 	client := cas.NewClient(&cas.Options{
 		URL: casURL,
@@ -61,8 +77,11 @@ func main() {
 	r.Handle("/", fs)
 
 	server := &http.Server{
-		Addr:    ":8080",
+		Addr:    ":" + port,
 		Handler: client.Handle(r),
+		// enforce timeouts
+		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  15 * time.Second,
 	}
 
 	server.ListenAndServe()
