@@ -2,7 +2,14 @@ import React from 'react'
 
 const h = React.createElement
 
+function sleep (ms) {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
 class MemberElement extends React.Component {
+  constructor (props) {
+    super(props)
+  }
 //    propTypes: {
 //        name: React.PropTypes.string.isRequired,
 //        netid: React.PropTypes.string.isRequired,
@@ -11,7 +18,7 @@ class MemberElement extends React.Component {
   removeMember (event) {
     fetch('/api/group/physics-grp-test/remove/' + this.props.NetId,
      {method: 'POST', credentials: 'same-origin'}).then()
-//    this.props.onGroupModified()
+    this.props.onGroupModified()
   }
 
   render () {
@@ -71,14 +78,18 @@ export default class App extends React.Component {
       groupname: '',
       members: []
     }
+
+    this.fetchState = this.fetchState.bind(this)
   }
 
   fetchState () {
-    fetch('/api/group/physics-grp-test/members', {credentials: 'same-origin'})
-      .then(r => r.json())
-      .then(data => {
-        this.setState({groupname: data.Name, members: data.Users})
-      })
+    sleep(500).then(() => {
+      fetch('/api/group/physics-grp-test/members', {credentials: 'same-origin'})
+        .then(r => r.json())
+        .then(data => {
+          this.setState({groupname: data.Name, members: data.Users})
+        })
+    })
   }
 
   componentDidMount () {
@@ -89,8 +100,11 @@ export default class App extends React.Component {
     return (
       h('div', null,
         h('h1', null, this.state.groupname),
-        h('ul', {className: "member-list"}, this.state.members.map(member => h(MemberElement, member))),
-        h(AddMemberElement, {onGroupModified: this.fetchState.bind(this)}))
+        h('ul', {className: 'member-list'}, this.state.members.map(member => {
+          Object.assign(member, {onGroupModified: this.fetchState})
+          return h(MemberElement, member)
+        })),
+        h(AddMemberElement, {onGroupModified: this.fetchState}))
     )
   }
 }
