@@ -28,13 +28,14 @@ body {
 
 .member-rm-btn {
     color: red;
-    font-weight: bold;
+    opacity: 0.3;
     transition-duration: 0.4s;
     cursor: pointer;
 }
 
 .member-rm-btn:hover {
-    font-size: 1.5rem;
+    opacity: 1;
+    font-weight: bold;
 }
 
 .member-name {
