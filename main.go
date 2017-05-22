@@ -18,14 +18,13 @@ import (
 	// finally settling on this muxer because:
 	// it plays nice with the global map in cas
 	// and it correctly serves static assets
-	//"github.com/go-zoo/bone"
-	"github.com/dimfeld/httptreemux"
 
+	"github.com/go-zoo/bone"
 	"github.com/golang/glog"
 
 	"fmt"
 
-	"gopkg.in/cas.v1"
+	"github.com/kalebo/cas"
 )
 
 // !!! the following line is a preprocessor directive !!!
@@ -62,27 +61,33 @@ func main() {
 
 	//r := http.NewServeMux()
 	//r := mux.NewRouter() // gorilla mux isn't playing well with cas on go1.7
-	//r := bone.New()
-	r := httptreemux.NewContextMux()
+	r := bone.New()
+	//r := httptreemux.NewContextMux()
 	//r := mux.NewMuxer()
+	//r := httprouter.New()
 
 	client := cas.NewClient(&cas.Options{
 		URL: casURL,
 	})
 
 	// Backend API Routes
-	r.GET("/api/*", APIEndpoints)
-	r.POST("/api/*", APIEndpoints)
+	r.HandleFunc("/api/*", APIEndpoints)
 
 	// CAS Authentication Routes
-	r.GET("/cas/login", cas.RedirectToLogin)
-	r.GET("/cas/logout", cas.RedirectToLogout)
-
-	// Static Asset Routing
-	r.GET("/*", StaticAssetHandler)
+	r.HandleFunc("/cas/login", cas.RedirectToLogin)
+	r.HandleFunc("/cas/logout", cas.RedirectToLogout)
 
 	// Main App Routing
-	r.GET("/", App)
+	//r.HandleFunc("/app", App)
+	r.HandleFunc("/", App)
+	r.HandleFunc("/test1", test)
+	r.HandleFunc("/test2", test)
+	r.HandleFunc("/test3/", test)
+	r.HandleFunc("/test4/*", test)
+
+	// Static Asset Routing
+	fs := http.FileServer(assetFS())
+	r.Handle("/*", fs)
 
 	//fs := http.FileServer(assetFS())
 	//r.Handle("/", fs)
@@ -115,6 +120,14 @@ func RenderTemplate(w http.ResponseWriter, tmpl string, p interface{}) {
 	}
 }
 
+func test(w http.ResponseWriter, r *http.Request) {
+	if !cas.IsAuthenticated(r) {
+		w.Write([]byte("Imma gonna flip"))
+		return
+	}
+	w.Write([]byte("maybe not quite yet..."))
+}
+
 func StaticAssetHandler(rw http.ResponseWriter, req *http.Request) {
 	path := "dist" + req.URL.Path // path to static assets
 
@@ -131,11 +144,12 @@ func StaticAssetHandler(rw http.ResponseWriter, req *http.Request) {
 
 // APIEndpoints acts as a reverse proxy to the RESTAD API backend
 func APIEndpoints(w http.ResponseWriter, r *http.Request) {
-	path := r.URL.Path
-	fmt.Println("Path: " + path)
 	if !cas.IsAuthenticated(r) {
+		fmt.Println("API not authd")
 		w.WriteHeader(http.StatusForbidden)
+		return
 	}
+	fmt.Println("API authd")
 
 	proxy := httputil.NewSingleHostReverseProxy(apiURL)
 	proxy.ServeHTTP(w, r)
