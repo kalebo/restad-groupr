@@ -98,13 +98,16 @@ export default class App extends React.Component {
 
   render () {
     return (
-      h('div', null,
-        h('h1', null, this.state.groupname),
-        h('ul', {className: 'member-list'}, this.state.members.map(member => {
-          Object.assign(member, {onGroupModified: this.fetchState})
-          return h(MemberElement, member)
-        })),
-        h(AddMemberElement, {onGroupModified: this.fetchState}))
+      h('div', {id: 'main-app'}, 
+        h('div', {className: 'group-list'})
+        h('div', {id: 'group-member-container'},
+          h('h1', null, this.state.groupname),
+          h('ul', {className: 'member-list'}, this.state.members.map(member => {
+            Object.assign(member, {onGroupModified: this.fetchState})
+            return h(MemberElement, member)
+          })),
+          h(AddMemberElement, {onGroupModified: this.fetchState}))
+      )
     )
   }
 }

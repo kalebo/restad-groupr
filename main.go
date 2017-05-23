@@ -24,7 +24,7 @@ import (
 
 	"fmt"
 
-	"github.com/kalebo/cas"
+	"gopkg.in/cas.v2"
 )
 
 // !!! the following line is a preprocessor directive !!!
@@ -71,7 +71,8 @@ func main() {
 	})
 
 	// Backend API Routes
-	r.HandleFunc("/api/*", APIEndpoints)
+	r.HandleFunc("/api/group/*", APIEndpoints)
+	r.HandleFunc("/api/user/*", DummyGroups)
 
 	// CAS Authentication Routes
 	r.HandleFunc("/cas/login", cas.RedirectToLogin)
@@ -120,6 +121,14 @@ func RenderTemplate(w http.ResponseWriter, tmpl string, p interface{}) {
 	}
 }
 
+func DummyGroups(w http.ResponseWriter, r *http.Request) {
+	if !cas.IsAuthenticated(r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+	w.Write([]byte("['physics-grp-test', 'physics-csrs']"))
+}
+
 func test(w http.ResponseWriter, r *http.Request) {
 	if !cas.IsAuthenticated(r) {
 		w.Write([]byte("Imma gonna flip"))
@@ -145,11 +154,9 @@ func StaticAssetHandler(rw http.ResponseWriter, req *http.Request) {
 // APIEndpoints acts as a reverse proxy to the RESTAD API backend
 func APIEndpoints(w http.ResponseWriter, r *http.Request) {
 	if !cas.IsAuthenticated(r) {
-		fmt.Println("API not authd")
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
-	fmt.Println("API authd")
 
 	proxy := httputil.NewSingleHostReverseProxy(apiURL)
 	proxy.ServeHTTP(w, r)
