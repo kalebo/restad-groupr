@@ -71,11 +71,37 @@ class AddMemberElement extends React.Component {
   }
 }
 
+class MemberViewComponent extends React.Component {
+  constructor (props) {
+    super(props)
+  }
+
+  render() {
+    if (this.props.selectedgroup == '') { // i.e., nothing selected
+      return (
+        h('div', {id: 'group-members-placeholder'})
+      )
+    }
+    else {
+      return(
+          h('div', {id: 'group-members-container'},
+            h('h1', null, this.props.selectedgroup),
+            h('ul', {className: 'member-list'}, this.props.members.map(member => {
+              Object.assign(member, {onGroupModified: this.props.onGroupModified})
+              return h(MemberElement, member)
+            })),
+            h(AddMemberElement, {onGroupModified: this.props.onGroupModified}))
+      )
+    }
+  }
+}
+
 export default class App extends React.Component {
   constructor (props) {
     super(props)
     this.state = {
-      groupname: '',
+      groups: [],
+      selectedgroup: 'physics-grp-test',
       members: []
     }
 
@@ -83,13 +109,15 @@ export default class App extends React.Component {
   }
 
   fetchState () {
-    sleep(500).then(() => {
-      fetch('/api/group/physics-grp-test/members', {credentials: 'same-origin'})
-        .then(r => r.json())
-        .then(data => {
-          this.setState({groupname: data.Name, members: data.Users})
-        })
-    })
+    if (this.state.selectedgroup != '') {
+      sleep(500).then(() => {
+        fetch('/api/group/'+ this.state.selectedgroup + '/members', {credentials: 'same-origin'})
+          .then(r => r.json())
+          .then(data => {
+            this.setState({selectedgroup: data.Name, members: data.Users})
+          })
+      })
+    }
   }
 
   componentDidMount () {
@@ -99,14 +127,15 @@ export default class App extends React.Component {
   render () {
     return (
       h('div', {id: 'main-app'}, 
-        h('div', {className: 'group-list'})
-        h('div', {id: 'group-member-container'},
-          h('h1', null, this.state.groupname),
-          h('ul', {className: 'member-list'}, this.state.members.map(member => {
-            Object.assign(member, {onGroupModified: this.fetchState})
-            return h(MemberElement, member)
-          })),
-          h(AddMemberElement, {onGroupModified: this.fetchState}))
+        h('div', {className: 'managed-groups-container'}, 
+          h('ul', {className: 'group-list'})
+
+        ),
+        h(MemberViewComponent, {
+           members: this.state.members,
+           selectedgroup: this.state.selectedgroup,
+           onGroupModified: this.fetchState
+          })
       )
     )
   }
