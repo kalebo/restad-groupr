@@ -79,7 +79,10 @@ class MemberViewComponent extends React.Component {
   render() {
     if (this.props.selectedgroup == '') { // i.e., nothing selected
       return (
-        h('div', {id: 'group-members-placeholder'})
+        h('div', {id: 'group-members-placeholder'},
+          h('img', {src: "group_not_selected.svg"}),
+          h('h2', {className: "sans-font"}, "No group selected")
+        )
       )
     }
     else {
