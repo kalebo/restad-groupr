@@ -47,6 +47,11 @@ body {
     text-align: center;
 }
 
+#main-app {
+    display: flex;
+
+}
+
 .sans-font {
     font-family: Gotham A,Gotham B,Helvetica,sans-serif !important;
 }

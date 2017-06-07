@@ -126,7 +126,7 @@ func DummyGroups(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
-	w.Write([]byte("['physics-grp-test', 'physics-csrs']"))
+	w.Write([]byte("[\"physics-grp-test\", \"physics-csrs\"]"))
 }
 
 func test(w http.ResponseWriter, r *http.Request) {

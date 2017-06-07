@@ -71,6 +71,21 @@ class AddMemberElement extends React.Component {
   }
 }
 
+class GroupViewComponent extends React.Component {
+  constructor (props) {
+    super(props)
+  }
+
+  render() {
+    return(
+        h('div', {className: 'managed-groups-container'}, 
+          h('ul', {className: 'group-list member-list'}, 
+            this.props.groups.map(group=>h('li', {onClick: () => this.props.onGroupSelected(group)}, group)))
+        )
+    )
+  }
+}
+
 class MemberViewComponent extends React.Component {
   constructor (props) {
     super(props)
@@ -81,14 +96,15 @@ class MemberViewComponent extends React.Component {
       return (
         h('div', {id: 'group-members-placeholder'},
           h('img', {src: "group_not_selected.svg"}),
-          h('h2', {className: "sans-font"}, "No group selected")
+          h('h2', {className: "sans-font"}, "No group selected"),
+          h('h3', {className: "sans-font"}, "Choose a group from the left to get started!")
         )
       )
     }
     else {
       return(
           h('div', {id: 'group-members-container'},
-            h('h1', null, this.props.selectedgroup),
+            h('h1', {className: 'sans-font'}, this.props.selectedgroup),
             h('ul', {className: 'member-list'}, this.props.members.map(member => {
               Object.assign(member, {onGroupModified: this.props.onGroupModified})
               return h(MemberElement, member)
@@ -104,14 +120,26 @@ export default class App extends React.Component {
     super(props)
     this.state = {
       groups: [],
-      selectedgroup: 'physics-grp-test',
+      selectedgroup: '',
       members: []
     }
 
     this.fetchState = this.fetchState.bind(this)
+    this.selectGroup = this.selectGroup.bind(this)
+  }
+
+  selectGroup(group) {
+    this.state.selectedgroup = group
+    this.fetchState()
   }
 
   fetchState () {
+    fetch('/api/user/managed', {credentials: 'same-origin'})
+      .then(r => r.json())
+      .then(data => {
+        this.setState({groups: data})
+    })
+
     if (this.state.selectedgroup != '') {
       sleep(500).then(() => {
         fetch('/api/group/'+ this.state.selectedgroup + '/members', {credentials: 'same-origin'})
@@ -130,10 +158,10 @@ export default class App extends React.Component {
   render () {
     return (
       h('div', {id: 'main-app'}, 
-        h('div', {className: 'managed-groups-container'}, 
-          h('ul', {className: 'group-list'})
-
-        ),
+        h(GroupViewComponent, {
+          groups: this.state.groups,
+          onGroupSelected: this.selectGroup
+        }),
         h(MemberViewComponent, {
            members: this.state.members,
            selectedgroup: this.state.selectedgroup,
