@@ -913,6 +913,10 @@ circular-json@^0.3.1:
   version "0.3.1"
   resolved "https://registry.yarnpkg.com/circular-json/-/circular-json-0.3.1.tgz#be8b36aefccde8b3ca7aa2d6afc07a37242c0d2d"
 
+classnames@^2.2.5:
+  version "2.2.5"
+  resolved "https://registry.yarnpkg.com/classnames/-/classnames-2.2.5.tgz#fb3801d453467649ef3603c7d61a02bd129bde6d"
+
 clean-css@4.0.x:
   version "4.0.13"
   resolved "https://registry.yarnpkg.com/clean-css/-/clean-css-4.0.13.tgz#feb2a176062d72a6c3e624d9213cac6a0c485e80"
@@ -3122,6 +3126,12 @@ react-dom@^15.5.4:
     loose-envify "^1.1.0"
     object-assign "^4.1.0"
     prop-types "~15.5.7"
+
+react-notie@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/react-notie/-/react-notie-1.2.0.tgz#a379d233b209a71cd5dc1f596701080b7e07c263"
+  dependencies:
+    classnames "^2.2.5"
 
 react-prop-types@^0.4.0:
   version "0.4.0"

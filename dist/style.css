@@ -1,3 +1,108 @@
+.react-notie {
+    pointer-events: none;
+}
+
+.react-notie.react-notie--active {
+    pointer-events: auto;
+}
+
+.react-notie-container {
+    position: fixed;
+    width: 100%;
+    text-align: center;
+    font-size: 14px;
+    color: #fff;
+    transition: transform 0.3s ease-in-out;
+    margin: 0 auto;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.react-notie--top > .react-notie-container {
+    top: 0;
+    left: 0;
+    transform: translate(0, -106%);
+}
+
+.react-notie--bottom > .react-notie-container {
+    bottom: 0;
+    left: 0;
+    transform: translate(0, 106%);
+}
+
+.react-notie--active > .react-notie-container {
+    transform: translate(0, 0);
+}
+
+.react-notie-message {
+    padding: 30px;
+    background: #333;
+}
+
+.react-notie.react-notie-level--success .react-notie-message {
+    background-color:  #13ce66;
+}
+
+.react-notie.react-notie-level--error .react-notie-message {
+    background-color:  #ff4949;
+}
+
+.react-notie.react-notie-level--warn .react-notie-message {
+    background-color: #f5be4b;
+}
+
+.react-notie.react-notie-level--info .react-notie-message {
+    background-color: #20a0ff;
+}
+
+.react-notie.react-notie-level--confirm .react-notie-message {
+    background-color: #20a0ff;
+}
+
+.react-notie-choices {
+    display: flex;
+    width: 100%;
+}
+
+.react-notie-choice {
+    padding: 20px;
+    flex-grow: 1;
+    text-align: center;
+    cursor: pointer;
+}
+
+.react-notie-choice.react-notie-choice--yes {
+    background-color:  #13ce66;
+}
+
+.react-notie-choice.react-notie-choice--no {
+    background-color:  #ff4949;
+}
+
+.react-notie-dismiss {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    cursor: pointer;
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+}
+
+.react-notie-dismiss::before {
+    content: '✕';
+}
+
+.react-notie-overlay {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    background: rgba(255, 255, 255, 0.6);
+}
+
 html, body {
         width: 100vw;
         min-width: 100vw;
@@ -10,13 +115,16 @@ html {
 
 
 body {
+    height: 100%;
+    font-family: Gotham A,Gotham B,Helvetica,sans-serif !important;
     display: flex;
     flex-direction: column;
-    height: 100%;
 }
 
 .page-content {
-    flex: 1;
+    display: flex;
+    flex: 1 0 auto;
+    flex-direction: column;
     margin: 0 auto;
     max-width: 1200px;
     width: 100%;
@@ -38,13 +146,32 @@ body {
     font-weight: bold;
 }
 
-.member-name {
+#group-members-placeholder {
+    display:flex;
+    margin-top: 4em;
+    flex-direction: column;
+    align-content: center;
+    justify-content: center;
+    color: #808080;
+    text-align: center;
+}
+
+#main-app {
+    padding: 2em;
+    display: flex;
+    justify-content: center;
+}
+
+.sans-font {
     font-family: Gotham A,Gotham B,Helvetica,sans-serif !important;
+}
+
+.member-name {
     font-weight: bold;
     color: #061429;
     }
+
 .member-netid {
-    font-family: Gotham A,Gotham B,Helvetica,sans-serif !important;
     color: #888;
     }
 
@@ -76,3 +203,30 @@ body {
     background-color: #4CAF50;
     color: white;
     }
+
+.managed-groups-container {
+    margin-right: 2em;
+    margin-top: 4em;
+    padding-right: 3em;
+    border-right-width: thin;
+    border-right-style: solid;
+    border-right-color: lightgray;
+}
+
+#loading {
+  display: inline-block;
+  width: 50px;
+  height: 50px;
+  border: 3px solid rgba(255,255,255,.3);
+  border-radius: 50%;
+  border-top-color: lightgray;
+  animation: spin 1s ease-in-out infinite;
+  -webkit-animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { -webkit-transform: rotate(360deg); }
+}
+@-webkit-keyframes spin {
+  to { -webkit-transform: rotate(360deg); }
+}

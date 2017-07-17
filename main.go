@@ -6,9 +6,12 @@ package main
 
 import (
 	"bytes"
+	"database/sql"
 	"flag"
+	"fmt"
 	"html/template"
 	"io"
+	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -21,14 +24,40 @@ import (
 
 	"github.com/go-zoo/bone"
 	"github.com/golang/glog"
+	_ "github.com/mattn/go-sqlite3"
 
-	"fmt"
+	"encoding/json"
 
-	"github.com/kalebo/cas"
+	"gopkg.in/cas.v2"
 )
+
+const schema = `
+CREATE TABLE IF NOT EXISTS groupadmin (
+	id INTEGER PRIMARY KEY,
+	principle TEXT,
+	type integer NOT NULL,
+	targetgroup TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS scheduledactions (
+	id INTEGER PRIMARY KEY,
+	time integer NOT NULL,
+	actionurl TEXT NOT NULL
+);
+`
+
+type principleType int
+
+const (
+	groupPrinciple principleType = iota
+	userPrinciple
+)
+
+var db *sql.DB
 
 // !!! the following line is a preprocessor directive !!!
 //go:generate go-bindata -debug -prefix "dist/" -pkg main -o bindata.go dist/...
+//go:generate go-bindata-assetfs -debug -prefix "dist/..." -pkg main -o bindata.go dist/...
 
 // TemplateBinding specifies the NetId username that the templates should be rendered with
 type TemplateBinding struct {
@@ -49,6 +78,17 @@ var (
 )
 
 func init() {
+	// Init the DB connection and if need be create the table
+	var err error
+	db, err = sql.Open("sqlite3", "./app.db")
+	if err != nil {
+		glog.Fatalf("Error on initializing database connection: %s", err.Error())
+	}
+
+	db.Ping()
+
+	db.Exec(schema)
+
 }
 
 func main() {
@@ -71,7 +111,8 @@ func main() {
 	})
 
 	// Backend API Routes
-	r.HandleFunc("/api/*", APIEndpoints)
+	r.HandleFunc("/api/group/*", APIEndpoints)
+	r.HandleFunc("/api/user/managed", UserManagedGroups)
 
 	// CAS Authentication Routes
 	r.HandleFunc("/cas/login", cas.RedirectToLogin)
@@ -120,6 +161,38 @@ func RenderTemplate(w http.ResponseWriter, tmpl string, p interface{}) {
 	}
 }
 
+func UserManagedGroups(w http.ResponseWriter, r *http.Request) {
+	if !cas.IsAuthenticated(r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+	var managedGroups []string
+
+	username := cas.Username(r)
+	rows, err := db.Query("SELECT targetgroup FROM groupadmin WHERE type=? AND principle=?", userPrinciple, username)
+	if err != nil {
+		log.Fatalf("Could not get DB records: %s", err)
+	}
+	defer rows.Close()
+
+	var _group string
+	for rows.Next() {
+		rows.Scan(&_group)
+		managedGroups = append(managedGroups, _group)
+	}
+
+	_jsonGroup, _ := json.Marshal(managedGroups)
+	w.Write(_jsonGroup)
+}
+
+func DummyGroups(w http.ResponseWriter, r *http.Request) {
+	if !cas.IsAuthenticated(r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+	w.Write([]byte("[\"physics-grp-test\", \"physics-csrs\"]"))
+}
+
 func test(w http.ResponseWriter, r *http.Request) {
 	if !cas.IsAuthenticated(r) {
 		w.Write([]byte("Imma gonna flip"))
@@ -145,11 +218,9 @@ func StaticAssetHandler(rw http.ResponseWriter, req *http.Request) {
 // APIEndpoints acts as a reverse proxy to the RESTAD API backend
 func APIEndpoints(w http.ResponseWriter, r *http.Request) {
 	if !cas.IsAuthenticated(r) {
-		fmt.Println("API not authd")
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
-	fmt.Println("API authd")
 
 	proxy := httputil.NewSingleHostReverseProxy(apiURL)
 	proxy.ServeHTTP(w, r)
