@@ -36,7 +36,7 @@
 }
 
 .react-notie-message {
-    padding: 20px;
+    padding: 30px;
     background: #333;
 }
 
@@ -116,10 +116,14 @@ html {
 
 body {
     height: 100%;
+    font-family: Gotham A,Gotham B,Helvetica,sans-serif !important;
+    display: flex;
+    flex-direction: column;
 }
 
 .page-content {
     display: flex;
+    flex: 1 0 auto;
     flex-direction: column;
     margin: 0 auto;
     max-width: 1200px;
@@ -144,6 +148,7 @@ body {
 
 #group-members-placeholder {
     display:flex;
+    margin-top: 4em;
     flex-direction: column;
     align-content: center;
     justify-content: center;
@@ -162,12 +167,11 @@ body {
 }
 
 .member-name {
-    font-family: Gotham A,Gotham B,Helvetica,sans-serif !important;
     font-weight: bold;
     color: #061429;
     }
+
 .member-netid {
-    font-family: Gotham A,Gotham B,Helvetica,sans-serif !important;
     color: #888;
     }
 
@@ -199,3 +203,12 @@ body {
     background-color: #4CAF50;
     color: white;
     }
+
+.managed-groups-container {
+    margin-right: 2em;
+    margin-top: 4em;
+    padding-right: 3em;
+    border-right-width: thin;
+    border-right-style: solid;
+    border-right-color: lightgray;
+}
