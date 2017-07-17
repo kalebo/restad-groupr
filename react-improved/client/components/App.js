@@ -1,9 +1,14 @@
 import React from 'react'
+import { withNotie } from 'react-notie'
 
 const h = React.createElement
 
 function sleep (ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+function stripPhysicsPrefix(id) {
+  return id.replace('physics-grp-', '')
 }
 
 class MemberElement extends React.Component {
@@ -16,8 +21,18 @@ class MemberElement extends React.Component {
 //        },
 
   removeMember (event) {
-    fetch('/api/group/physics-grp-test/remove/' + this.props.NetId,
-     {method: 'POST', credentials: 'same-origin'}).then()
+    fetch('/api/group/'+ this.props.selectedgroup + '/remove/' + this.props.NetId,
+     {method: 'POST', credentials: 'same-origin'}).then((r) => r.json()).then((msg) => {
+       if (msg.Result == 'Success') {
+         this.props.notie.success(msg.Message)
+       }
+       else if (msg.Result == 'Warn') {
+         this.props.notie.warn(msg.Message)
+       }
+       else {
+         this.props.notie.error(msg.Message)
+       }
+     })
     this.props.onGroupModified()
   }
 
@@ -39,14 +54,24 @@ class AddMemberElement extends React.Component {
   constructor (props) {
     super(props)
     this.state = {
-      netid: ''
+      netid: '' // holds the netid as the user is typing it
     }
   }
 
   handleSubmit (event) {
     event.preventDefault()
-    fetch('/api/group/physics-grp-test/add/' + this.state.netid,
-     {method: 'POST', credentials: 'same-origin'}).then()
+    fetch('/api/group/' + this.props.selectedgroup + '/add/' + this.state.netid,
+     {method: 'POST', credentials: 'same-origin'}).then((r) => r.json()).then((msg) => {
+       if (msg.Result == 'Success') {
+         this.props.notie.success(msg.Message)
+       }
+       else if (msg.Result == 'Warn') {
+         this.props.notie.warn(msg.Message)
+       }
+       else {
+         this.props.notie.error(msg.Message)
+       }
+     })
     this.setState({netid: ''})
     this.props.onGroupModified()
   }
@@ -80,7 +105,7 @@ class GroupViewComponent extends React.Component {
     return(
         h('div', {className: 'managed-groups-container'}, 
           h('ul', {className: 'group-list member-list'}, 
-            this.props.groups.map(group=>h('li', {onClick: () => this.props.onGroupSelected(group)}, group)))
+            this.props.groups.map(group=>h('li', {onClick: () => this.props.onGroupSelected(group)}, stripPhysicsPrefix(group))))
         )
     )
   }
@@ -104,18 +129,26 @@ class MemberViewComponent extends React.Component {
     else {
       return(
           h('div', {id: 'group-members-container'},
-            h('h1', {className: 'sans-font'}, this.props.selectedgroup),
+            h('h1', {className: 'sans-font'}, stripPhysicsPrefix(this.props.selectedgroup)),
             h('ul', {className: 'member-list'}, this.props.members.map(member => {
-              Object.assign(member, {onGroupModified: this.props.onGroupModified})
+              Object.assign(member, {
+                selectedgroup: this.props.selectedgroup,
+                onGroupModified: this.props.onGroupModified,
+                notie: this.props.notie
+              })
               return h(MemberElement, member)
             })),
-            h(AddMemberElement, {onGroupModified: this.props.onGroupModified}))
+            h(AddMemberElement, {
+              selectedgroup: this.props.selectedgroup,
+              onGroupModified: this.props.onGroupModified,
+              notie: this.props.notie
+            }))
       )
     }
   }
 }
 
-export default class App extends React.Component {
+class App extends React.Component {
   constructor (props) {
     super(props)
     this.state = {
@@ -163,11 +196,14 @@ export default class App extends React.Component {
           onGroupSelected: this.selectGroup
         }),
         h(MemberViewComponent, {
-           members: this.state.members,
-           selectedgroup: this.state.selectedgroup,
-           onGroupModified: this.fetchState
-          })
+          members: this.state.members,
+          selectedgroup: this.state.selectedgroup,
+          onGroupModified: this.fetchState,
+          notie: this.props.notie
+        })
       )
     )
   }
 }
+
+export default withNotie(App)
