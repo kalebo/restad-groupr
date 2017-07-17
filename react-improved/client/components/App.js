@@ -163,6 +163,7 @@ class App extends React.Component {
 
   selectGroup(group) {
     this.state.selectedgroup = group
+    this.state.members = []
     this.fetchState()
   }
 
@@ -174,7 +175,7 @@ class App extends React.Component {
     })
 
     if (this.state.selectedgroup != '') {
-      sleep(500).then(() => {
+      sleep(40).then(() => {
         fetch('/api/group/'+ this.state.selectedgroup + '/members', {credentials: 'same-origin'})
           .then(r => r.json())
           .then(data => {
