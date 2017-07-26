@@ -3,6 +3,15 @@ import { withNotie } from 'react-notie'
 
 const h = React.createElement
 
+function sessionIsValid() {
+  if (document.cookie.match(/^(.*;)?\s*_cas_session\s*=\s*[^;]+(.*)?$/) != null) {
+    return true
+  }
+  else {
+    return false
+  }
+}
+
 function sleep (ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
@@ -21,19 +30,24 @@ class MemberElement extends React.Component {
 //        },
 
   removeMember (event) {
-    fetch('/api/group/'+ this.props.selectedgroup + '/remove/' + this.props.NetId,
-     {method: 'POST', credentials: 'same-origin'}).then((r) => r.json()).then((msg) => {
-       if (msg.Result == 'Success') {
-         this.props.notie.success(msg.Message)
-       }
-       else if (msg.Result == 'Warn') {
-         this.props.notie.warn(msg.Message)
-       }
-       else {
-         this.props.notie.error(msg.Message)
-       }
-     })
-    this.props.onGroupModified()
+    if (sessionIsValid()) {
+      fetch('/api/group/'+ this.props.selectedgroup + '/remove/' + this.props.NetId,
+      {method: 'POST', credentials: 'same-origin'}).then((r) => r.json()).then((msg) => {
+        if (msg.Result == 'Success') {
+          this.props.notie.success(msg.Message)
+        }
+        else if (msg.Result == 'Warn') {
+          this.props.notie.warn(msg.Message)
+        }
+        else {
+          this.props.notie.error(msg.Message)
+        }
+      })
+      this.props.onGroupModified()
+    }
+    else {
+        this.props.notie.error("The cookie associated with your CAS session has expired; please refresh the page.")
+    }
   }
 
   render () {
@@ -60,20 +74,25 @@ class AddMemberElement extends React.Component {
 
   handleSubmit (event) {
     event.preventDefault()
-    fetch('/api/group/' + this.props.selectedgroup + '/add/' + this.state.netid,
-     {method: 'POST', credentials: 'same-origin'}).then((r) => r.json()).then((msg) => {
-       if (msg.Result == 'Success') {
-         this.props.notie.success(msg.Message)
-       }
-       else if (msg.Result == 'Warn') {
-         this.props.notie.warn(msg.Message)
-       }
-       else {
-         this.props.notie.error(msg.Message)
-       }
-     })
-    this.setState({netid: ''})
-    this.props.onGroupModified()
+    if (sessionIsValid()) {
+      fetch('/api/group/' + this.props.selectedgroup + '/add/' + this.state.netid,
+      {method: 'POST', credentials: 'same-origin'}).then((r) => r.json()).then((msg) => {
+        if (msg.Result == 'Success') {
+          this.props.notie.success(msg.Message)
+        }
+        else if (msg.Result == 'Warn') {
+          this.props.notie.warn(msg.Message)
+        }
+        else {
+          this.props.notie.error(msg.Message)
+        }
+      })
+      this.setState({netid: ''})
+      this.props.onGroupModified()
+    }
+    else {
+        this.props.notie.error("The cookie associated with your CAS session has expired; please refresh the page.")
+    }
   }
 
   render () {
@@ -167,21 +186,37 @@ class App extends React.Component {
     this.fetchState()
   }
 
-  fetchState () {
-    fetch('/api/user/managed', {credentials: 'same-origin'})
-      .then(r => r.json())
-      .then(data => {
-        this.setState({groups: data})
-    })
+  handleResponse(response) {
+        if (response.status == 403) {
+          console.log("The API request was refused. Try refreshing the page.")
+        }
+        if (response.status == 200) {
+          return response.json()
+        }
+  }
 
-    if (this.state.selectedgroup != '') {
-      sleep(40).then(() => {
-        fetch('/api/group/'+ this.state.selectedgroup + '/members', {credentials: 'same-origin'})
-          .then(r => r.json())
-          .then(data => {
-            this.setState({selectedgroup: data.Name, members: data.Users})
-          })
-      })
+  fetchState () {
+    if (sessionIsValid()) {
+      fetch('/api/user/managed', {credentials: 'same-origin'})
+        .then(r => this.handleResponse(r))
+        .then(data => {
+          this.setState({groups: data})
+        })
+        .catch(err => console.log(err))
+
+      if (this.state.selectedgroup != '') {
+        sleep(40).then(() => {
+          fetch('/api/group/'+ this.state.selectedgroup + '/members', {credentials: 'same-origin'})
+            .then(r => this.handleResponse(r))
+            .then(data => {
+              this.setState({selectedgroup: data.Name, members: data.Users})
+            })
+            .catch(err => console.log(err))
+        })
+      }
+    }
+    else {
+        this.props.notie.error("The cookie associated with your CAS session has expired; please refresh the page.")
     }
   }
 
