@@ -121,6 +121,7 @@ func main() {
 	// Main App Routing
 	//r.HandleFunc("/app", App)
 	r.HandleFunc("/", App)
+	r.HandleFunc("/refresh", refreshCookie)
 	r.HandleFunc("/test1", test)
 	r.HandleFunc("/test2", test)
 	r.HandleFunc("/test3/", test)
@@ -238,4 +239,13 @@ func App(w http.ResponseWriter, r *http.Request) {
 	}
 
 	RenderTemplate(w, "dist/index.html", binding)
+}
+
+func refreshCookie(w http.ResponseWriter, r *http.Request) {
+	if !cas.IsAuthenticated(r) {
+		w.Write([]byte("false"))
+		return
+	}
+	w.Write([]byte("true"))
+	return
 }
