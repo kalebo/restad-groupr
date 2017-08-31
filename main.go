@@ -1,12 +1,9 @@
 package main
 
-//"github.com/gorilla/mux"
-//"github.com/dimfeld/httptreemux"
-//"github.com/szxp/mux"
-
 import (
 	"bytes"
 	"database/sql"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"html/template"
@@ -15,18 +12,13 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"os"
 	"strings"
 	"time"
-
-	// finally settling on this muxer because:
-	// it plays nice with the global map in cas
-	// and it correctly serves static assets
 
 	"github.com/go-zoo/bone"
 	"github.com/golang/glog"
 	_ "github.com/mattn/go-sqlite3"
-
-	"encoding/json"
 
 	"gopkg.in/cas.v2"
 )
@@ -65,8 +57,9 @@ type TemplateBinding struct {
 }
 
 var (
-	casURL = &url.URL{Scheme: "https", Host: "cas.byu.edu", Path: "/cas/"}
-	apiURL = &url.URL{Scheme: "http", Host: "10.25.82.180:1234"}
+	port   string
+	casURL *url.URL
+	apiURL *url.URL
 
 	templateMap = template.FuncMap{
 		"Upper": func(s string) string {
@@ -89,22 +82,27 @@ func init() {
 
 	db.Exec(schema)
 
+	// Get parameters
+	var apiURLRaw string
+	var casURLRaw string
+
+	flag.StringVar(&port, "port", os.Getenv("PORT"), "the `port` to listen on.")
+	flag.StringVar(&apiURLRaw, "api-url", os.Getenv("RESTAD_URL"), "URL of Addict API Service")
+	flag.StringVar(&casURLRaw, "cas-url", os.Getenv("CAS_URL"), "URL of CAS service")
+	flag.Parse()
+
+	// Parse url parameters
+	apiURL = mustParse(url.Parse(apiURLRaw))
+	casURL = mustParse(url.Parse(casURLRaw))
+	if port == "" {
+		port = "8080"
+	}
 }
 
 func main() {
-	var port string
-
-	flag.StringVar(&port, "port", "8080", "the `port` to listen on.")
-	flag.Parse()
-
 	glog.Info("Starting...")
 
-	//r := http.NewServeMux()
-	//r := mux.NewRouter() // gorilla mux isn't playing well with cas on go1.7
 	r := bone.New()
-	//r := httptreemux.NewContextMux()
-	//r := mux.NewMuxer()
-	//r := httprouter.New()
 
 	client := cas.NewClient(&cas.Options{
 		URL: casURL,
@@ -122,10 +120,6 @@ func main() {
 	//r.HandleFunc("/app", App)
 	r.HandleFunc("/", App)
 	r.HandleFunc("/refresh", refreshCookie)
-	r.HandleFunc("/test1", test)
-	r.HandleFunc("/test2", test)
-	r.HandleFunc("/test3/", test)
-	r.HandleFunc("/test4/*", test)
 
 	// Static Asset Routing
 	fs := http.FileServer(assetFS())
@@ -186,22 +180,6 @@ func UserManagedGroups(w http.ResponseWriter, r *http.Request) {
 	w.Write(_jsonGroup)
 }
 
-func DummyGroups(w http.ResponseWriter, r *http.Request) {
-	if !cas.IsAuthenticated(r) {
-		w.WriteHeader(http.StatusForbidden)
-		return
-	}
-	w.Write([]byte("[\"physics-grp-test\", \"physics-csrs\"]"))
-}
-
-func test(w http.ResponseWriter, r *http.Request) {
-	if !cas.IsAuthenticated(r) {
-		w.Write([]byte("Imma gonna flip"))
-		return
-	}
-	w.Write([]byte("maybe not quite yet..."))
-}
-
 func StaticAssetHandler(rw http.ResponseWriter, req *http.Request) {
 	path := "dist" + req.URL.Path // path to static assets
 
@@ -248,4 +226,12 @@ func refreshCookie(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Write([]byte("true"))
 	return
+}
+
+func mustParse(_url *url.URL, err error) *url.URL {
+	if err != nil {
+		panic(err)
+	}
+
+	return _url
 }

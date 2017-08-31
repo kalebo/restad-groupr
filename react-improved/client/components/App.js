@@ -205,7 +205,7 @@ class App extends React.Component {
         .catch(err => console.log(err))
 
       if (this.state.selectedgroup != '') {
-        sleep(40).then(() => {
+        sleep(100).then(() => {
           fetch('/api/group/'+ this.state.selectedgroup + '/members', {credentials: 'same-origin'})
             .then(r => this.handleResponse(r))
             .then(data => {
