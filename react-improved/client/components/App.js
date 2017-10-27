@@ -195,6 +195,16 @@ class App extends React.Component {
         }
   }
 
+  sortNetids(id1,id2) {
+    if (id1.NetId > id2.NetId) {
+      return 1
+    }
+    else if (id1.NetId < id.NetId) {
+      return -1
+    }
+    return 0
+  }
+
   fetchState () {
     if (sessionIsValid()) {
       fetch('/api/user/managed', {credentials: 'same-origin'})
@@ -209,7 +219,7 @@ class App extends React.Component {
           fetch('/api/group/'+ this.state.selectedgroup + '/members', {credentials: 'same-origin'})
             .then(r => this.handleResponse(r))
             .then(data => {
-              this.setState({selectedgroup: data.Name, members: data.Users})
+              this.setState({selectedgroup: data.Name, members: data.Users.sort(this.sortNetids)})
             })
             .catch(err => console.log(err))
         })
