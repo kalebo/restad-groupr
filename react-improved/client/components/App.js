@@ -115,16 +115,23 @@ class AddMemberElement extends React.Component {
   }
 }
 
+const GroupElement = ({group, onClick, selected}) => {
+  return(h('li', {onClick: onClick, className: (selected ? "selected-group-name" : "group-name")}, stripPhysicsPrefix(group)))
+}
+
 class GroupViewComponent extends React.Component {
   constructor (props) {
     super(props)
   }
 
+
   render() {
     return(
         h('div', {className: 'managed-groups-container'}, 
           h('ul', {className: 'group-list member-list'}, 
-            this.props.groups.map(group=>h('li', {onClick: () => this.props.onGroupSelected(group)}, stripPhysicsPrefix(group))))
+            this.props.groups.map(group=>GroupElement({
+              onClick: () => this.props.onGroupSelected(group), selected: group === this.props.selectedgroup, group: group}))
+          )
         )
     )
   }
@@ -195,11 +202,22 @@ class App extends React.Component {
         }
   }
 
+
+  sortNames(id1,id2) {
+    if (id1.Name > id2.Name) {
+      return 1
+    }
+    else if (id1.Name < id2.Name) {
+      return -1
+    }
+    return 0
+  }
+
   sortNetids(id1,id2) {
     if (id1.NetId > id2.NetId) {
       return 1
     }
-    else if (id1.NetId < id.NetId) {
+    else if (id1.NetId < id2.NetId) {
       return -1
     }
     return 0
@@ -219,7 +237,7 @@ class App extends React.Component {
           fetch('/api/group/'+ this.state.selectedgroup + '/members', {credentials: 'same-origin'})
             .then(r => this.handleResponse(r))
             .then(data => {
-              this.setState({selectedgroup: data.Name, members: data.Users.sort(this.sortNetids)})
+              this.setState({selectedgroup: data.Name, members: data.Users.sort(this.sortNames)})
             })
             .catch(err => console.log(err))
         })
@@ -239,6 +257,7 @@ class App extends React.Component {
       h('div', {id: 'main-app'}, 
         h(GroupViewComponent, {
           groups: this.state.groups,
+          selectedgroup: this.state.selectedgroup,
           onGroupSelected: this.selectGroup
         }),
         h(MemberViewComponent, {
