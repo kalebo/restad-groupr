@@ -13,5 +13,5 @@ Enter directory `react-improved` and fetch dependencies with `yarn install`. Fin
 
 ## Build backend
 Make sure your `GOPATH` is defined and then run `make setup` to fetch all the dependencies.
-Once you have the dependencies you can build the application with `make release`.
+Once you have the dependencies you can build the application with `make release`. Note that CGO is required so cross compiling for linux from windows is not well supported.
 
